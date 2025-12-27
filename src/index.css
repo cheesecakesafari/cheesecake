@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile-first responsive design optimizations */
+@media (max-width: 768px) {
+  .container {
+    @apply px-3;
+  }
+  
+  /* Reduce modal sizes on mobile */
+  .dialog-content {
+    @apply max-w-[95vw] max-h-[85vh] text-sm;
+  }
+  
+  /* Smaller cards on mobile */
+  .mobile-card {
+    @apply text-sm;
+  }
+  
+  .mobile-card .card-title {
+    @apply text-base;
+  }
+  
+  .mobile-card .card-content {
+    @apply text-xs;
+  }
+  
+  /* Smaller buttons on mobile */
+  .mobile-button {
+    @apply text-xs px-2 py-1;
+  }
+  
+  /* Compact navigation on mobile */
+  .mobile-nav {
+    @apply text-sm py-1;
+  }
+  
+  /* Reduce hero content size on mobile */
+  .mobile-hero h1 {
+    @apply text-3xl;
+  }
+  
+  .mobile-hero p {
+    @apply text-base;
+  }
+  
+  /* Smaller trust section icons on mobile */
+  .mobile-trust-icon {
+    @apply w-12 h-12;
+  }
+  
+  .mobile-trust-icon svg {
+    @apply w-6 h-6;
+  }
+  
+  /* Company cars modal adjustments for mobile */
+  .mobile-cars-modal .card-content {
+    @apply p-4;
+  }
+  
+  /* Partners section mobile adjustments */
+  .mobile-partners {
+    @apply grid-cols-2 gap-3;
+  }
+  
+  .mobile-partners .card-content {
+    @apply p-3;
+  }
+}
+
+/* CHEESECAKE SAFARIS Design System - Modern Goldish/Green Theme
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 120 15% 97%;
+    --foreground: 140 25% 15%;
+
+    --card: 120 20% 98%;
+    --card-foreground: 140 25% 15%;
+
+    --popover: 120 20% 98%;
+    --popover-foreground: 140 25% 15%;
+
+    /* Rich gold primary */
+    --primary: 45 95% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 50 100% 70%;
+    --primary-deep: 40 85% 48%;
+    
+    /* Forest green secondary */
+    --secondary: 140 35% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 140 25% 65%;
+
+    /* Sage green muted tones */
+    --muted: 120 20% 92%;
+    --muted-foreground: 130 15% 55%;
+
+    /* Emerald accent */
+    --accent: 160 60% 45%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 160 40% 65%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 120 25% 85%;
+    --input: 120 25% 90%;
+    --ring: 45 95% 58%;
+
+    /* Modern gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(45 95% 58%) 0%, hsl(160 60% 45%) 50%, hsl(140 35% 45%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(45 95% 58%) 0%, hsl(50 90% 65%) 100%);
+    --gradient-emerald: linear-gradient(135deg, hsl(160 60% 45%) 0%, hsl(140 35% 45%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+    --gradient-overlay: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%);
+    
+    /* Modern shadows */
+    --shadow-gold: 0 20px 40px -10px hsl(45 95% 58% / 0.3);
+    --shadow-emerald: 0 20px 40px -10px hsl(160 60% 45% / 0.3);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    
+    /* Smooth animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 140 25% 8%;
+    --foreground: 120 15% 92%;
+
+    --card: 140 20% 10%;
+    --card-foreground: 120 15% 92%;
+
+    --popover: 140 20% 10%;
+    --popover-foreground: 120 15% 92%;
+
+    /* Gold maintains vibrancy in dark */
+    --primary: 45 95% 62%;
+    --primary-foreground: 140 25% 8%;
+    --primary-glow: 50 100% 75%;
+    --primary-deep: 40 85% 52%;
+
+    --secondary: 140 35% 25%;
+    --secondary-foreground: 120 15% 85%;
+    --secondary-light: 140 25% 45%;
+
+    --muted: 130 10% 15%;
+    --muted-foreground: 120 8% 65%;
+
+    --accent: 160 60% 35%;
+    --accent-foreground: 120 15% 92%;
+    --accent-light: 160 40% 55%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 130 15% 20%;
+    --input: 130 15% 18%;
+    --ring: 45 95% 62%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
