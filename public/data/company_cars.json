@@ -4,7 +4,7 @@
     "name": "Toyota Hiace",
     "number_plate": "KDS 318J",
     "number_of_passengers": 14,
-    "images": ["/lovable-uploads/kds-318j.jpg"],
+    "images": ["/lovable-uploads/KDS 1.jpg"],
     "is_available": true,
     "description": "14-seater shuttle"
   },
@@ -13,7 +13,7 @@
     "name": "Toyota Coaster",
     "number_plate": "KDH 047T",
     "number_of_passengers": 25,
-    "images": ["/lovable-uploads/kdh-047t.jpg"],
+    "images": ["/lovable-uploads/KDH 3.jpg"],
     "is_available": true,
     "description": "25-seater coach"
   },
@@ -22,7 +22,7 @@
     "name": "Mini Bus",
     "number_plate": "KDU 203J",
     "number_of_passengers": 8,
-    "images": ["/lovable-uploads/kdu-203j.jpg"],
+    "images": ["/lovable-uploads/KDU 3.jpg"],
     "is_available": true,
     "description": "8-seater mini bus"
   }
