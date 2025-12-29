@@ -1,29 +1,32 @@
 [
   {
     "id": "1",
-    "name": "Toyota Hiace",
-    "number_plate": "KDS 318J",
-    "number_of_passengers": 14,
-    "images": ["/lovable-uploads/KDS 1.jpg"],
+    "name": "Toyota Land Cruiser 79 Series (2018)",
+    "number_plate": "KDH 047T",
+    "number_of_passengers": 6,
+    "color": "Beige",
+    "images": ["/lovable-uploads/KDH 3.jpg"],
     "is_available": true,
-    "description": "14-seater shuttle"
+    "description": "Toyota Land Cruiser 79 Series (2018) - Beige, 6 passengers"
   },
   {
     "id": "2",
-    "name": "Toyota Coaster",
-    "number_plate": "KDH 047T",
-    "number_of_passengers": 25,
-    "images": ["/lovable-uploads/KDH 3.jpg"],
+    "name": "Toyota Land Cruiser 79 Series (2018)",
+    "number_plate": "KDS 318J",
+    "number_of_passengers": 7,
+    "color": "Beige",
+    "images": ["/lovable-uploads/KDS 1.jpg"],
     "is_available": true,
-    "description": "25-seater coach"
+    "description": "Toyota Land Cruiser 79 Series (2018) - Beige, 7 passengers"
   },
   {
     "id": "3",
-    "name": "Mini Bus",
+    "name": "Toyota Land Cruiser 79 Series (2018)",
     "number_plate": "KDU 203J",
     "number_of_passengers": 8,
+    "color": "Beige",
     "images": ["/lovable-uploads/KDU 3.jpg"],
     "is_available": true,
-    "description": "8-seater mini bus"
+    "description": "Toyota Land Cruiser 79 Series (2018) - Beige, 8 passengers"
   }
 ]
