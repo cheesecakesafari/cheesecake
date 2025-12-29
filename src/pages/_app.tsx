@@ -1,7 +1,9 @@
+import dynamic from 'next/dynamic';
 import React from 'react';
-import App from '@/App';
 
-// Render the existing SPA `App` inside Next's _app so client-side routing works.
+// Load the SPA only on the client to avoid server-side usage of `window`/`document`.
+const NoSSRApp = dynamic(() => import('@/App'), { ssr: false });
+
 export default function MyApp(_: any) {
-  return <App />;
+  return <NoSSRApp />;
 }

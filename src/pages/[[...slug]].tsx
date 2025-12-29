@@ -1,7 +1,6 @@
 import React from 'react';
-import App from '@/App';
 
-// Catch-all page to let the client-side router handle routing for any path.
+// Catch-all: keep minimal; SPA mounts client-side from _app (NoSSR)
 export default function CatchAll() {
-  return <App />;
+  return <div />;
 }
