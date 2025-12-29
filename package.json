@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build || true",
-    "build:dev": "vite build --mode development",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "build:dev": "next build --profile",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -50,6 +51,8 @@
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     
+    "next": "^16.1.1",
+    "next-themes": "^0.3.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
