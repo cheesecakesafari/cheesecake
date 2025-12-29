@@ -22,7 +22,7 @@ export function Header() {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-primary" />
-                <span className="text-foreground">info@cheesecakesafaris.com</span>
+                <span className="text-foreground">cheesecakesafari@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-primary" />

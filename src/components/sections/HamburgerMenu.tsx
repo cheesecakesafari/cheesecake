@@ -100,7 +100,7 @@ export function HamburgerMenu() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Mail className="w-3 h-3" />
-                    <a href="mailto:info@cheesecakesafaris.com" className="hover:text-primary">info@cheesecakesafaris.com</a>
+                    <a href="mailto:cheesecakesafari@gmail.com" className="hover:text-primary">cheesecakesafari@gmail.com</a>
                   </div>
                 </div>
               </button>

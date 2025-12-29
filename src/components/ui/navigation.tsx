@@ -41,7 +41,7 @@ export function Navigation() {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
-                <span>info@cheesecakesafaris.com</span>
+                <span>cheesecakesafari@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
