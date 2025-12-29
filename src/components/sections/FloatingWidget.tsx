@@ -21,7 +21,7 @@ export function FloatingWidget() {
   };
 
   return (
-    <div className="w-full bg-gradient-to-r from-yellow-500/10 to-amber-600/10 backdrop-blur-sm border-b border-yellow-400/20 sticky top-0 z-20">
+    <div className="w-full bg-gradient-to-r from-yellow-500/10 to-amber-600/10 backdrop-blur-sm border-b border-yellow-400/20 relative z-20">
       <div className="bg-gradient-to-r from-yellow-500/20 to-amber-600/20 backdrop-blur-sm rounded-2xl border border-yellow-400/30 mx-4 my-2 max-w-4xl mx-auto shadow-lg">
         <div className="px-6 py-4">
           <div className="text-center mb-4">
