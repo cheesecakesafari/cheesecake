@@ -6,7 +6,8 @@ import { GalleryModal } from "./gallery-modal";
 import { AboutModal } from "./about-modal";
 import { ContactModal } from "./contact-modal";
 import { BookSafariModal } from "./book-safari-modal";
-import logoImage from "/lovable-uploads/6d80ea7d-d6c7-4084-8c6f-e18f2ed42a2b.png";
+// logo is served from the public folder — reference by path string
+const logoImage = "/lovable-uploads/6d80ea7d-d6c7-4084-8c6f-e18f2ed42a2b.png";
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCarsModal, setShowCarsModal] = useState(false);

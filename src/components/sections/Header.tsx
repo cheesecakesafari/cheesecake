@@ -3,7 +3,8 @@ import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Car } from "lucide-r
 import { CompanyCarsModal } from "@/components/ui/company-cars-modal";
 import { BookSafariModal } from "@/components/ui/book-safari-modal";
 import { useState } from "react";
-import logoImage from "/lovable-uploads/6d80ea7d-d6c7-4084-8c6f-e18f2ed42a2b.png";
+// logo is served from the public folder — reference by path string
+const logoImage = "/lovable-uploads/6d80ea7d-d6c7-4084-8c6f-e18f2ed42a2b.png";
 
 export function Header() {
   const [showCarsModal, setShowCarsModal] = useState(false);

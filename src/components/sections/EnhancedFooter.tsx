@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube, Camera, Calendar, Users, Award } from "lucide-react";
-import logoImage from "/lovable-uploads/6d80ea7d-d6c7-4084-8c6f-e18f2ed42a2b.png";
+// logo is served from the public folder — reference by path string
+const logoImage = "/lovable-uploads/6d80ea7d-d6c7-4084-8c6f-e18f2ed42a2b.png";
 
 export function EnhancedFooter() {
   return (
