@@ -77,6 +77,8 @@ export function CompanyCarsModal({
   };
 
   const handleSendToWhatsApp = (forCar?: CompanyCar) => {
+    // Ensure booking file is downloaded first so the user can attach it if needed
+    handleDownloadBookingFile(forCar);
     const message = buildBookingMessage(forCar);
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/254710622549?text=${encodedMessage}`;
@@ -86,10 +88,14 @@ export function CompanyCarsModal({
   };
 
   const handleSendEmail = (forCar?: CompanyCar) => {
-    const message = buildBookingMessage(forCar);
-    const subject = `Booking request - ${selectedCar?.name || 'Vehicle'}`;
-    const mailto = `mailto:cheesecakesafari@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-    window.location.href = mailto;
+    // Download booking file first for the user's records/attachment
+    handleDownloadBookingFile(forCar);
+    const car = forCar || selectedCar;
+    const subject = `I WANT TO BOOK A CAR "${car?.number_plate || ''}"`;
+    const body = buildBookingMessage(forCar);
+    // Open Gmail web compose (will redirect to Gmail if user is logged in)
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=cheesecakesafari@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
     setShowBookingWidget(false);
   };
 
@@ -468,6 +474,13 @@ export function CompanyCarsModal({
                 id="clientName"
                 value={bookingForm.clientName}
                 onChange={(e) => setBookingForm(prev => ({ ...prev, clientName: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && bookingForm.clientName && bookingForm.fromDate && bookingForm.toDate) {
+                    // When Enter is pressed, open Gmail compose with pre-filled subject
+                    e.preventDefault();
+                    handleSendEmail(selectedCar || undefined);
+                  }
+                }}
                 placeholder="Enter client full name"
                 className="rounded-xl"
               />
