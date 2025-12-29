@@ -71,12 +71,7 @@ export function Header() {
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center gap-4">
-              <Button 
-                onClick={() => setShowBookSafariModal(true)}
-                className="bg-hero-gradient hover:shadow-gold transition-all duration-300 text-primary-foreground"
-              >
-                Book Safari
-              </Button>
+              {/* Book Safari button removed per request - keep layout intact */}
             </div>
 
           </div>
