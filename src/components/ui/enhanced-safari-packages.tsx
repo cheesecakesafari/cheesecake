@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+// Using static JSON for trips in /data/trips.json
 import { BookingModal } from "./booking-modal";
 import { TripDetailsModal } from "./trip-details-modal";
 import { 
@@ -54,13 +54,9 @@ export function EnhancedSafariPackages() {
 
   const fetchTrips = async () => {
     try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .order('is_featured', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/data/trips.json');
+      if (!res.ok) throw new Error('Failed to load trips');
+      const data: Trip[] = await res.json();
       setTrips(data || []);
     } catch (error) {
       console.error('Error fetching trips:', error);

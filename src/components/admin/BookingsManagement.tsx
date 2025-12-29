@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Static mode: bookings read from `public/data/bookings.json`. Persistence disabled.
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,18 +36,9 @@ export function BookingsManagement() {
 
   const fetchBookings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          trips (
-            title,
-            price
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/data/bookings.json');
+      if (!res.ok) throw new Error('Failed to load bookings');
+      const data: Booking[] = await res.json();
       setBookings(data || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -63,18 +54,11 @@ export function BookingsManagement() {
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-      
+      // Persistence disabled in static mode — update not possible. Inform the admin.
       toast({
-        title: "Success",
-        description: `Booking status updated to ${newStatus}`
+        title: "Not Available",
+        description: "Updating booking status is disabled in static mode. Edit the data file to persist changes.",
       });
-      fetchBookings();
     } catch (error) {
       console.error('Error updating booking:', error);
       toast({

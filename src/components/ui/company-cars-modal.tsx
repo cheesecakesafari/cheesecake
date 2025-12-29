@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { Car, Users, Palette, Hash, CheckCircle, Calendar as CalendarIcon, Send, Eye, ArrowLeft } from "lucide-react";
 interface CompanyCar {
   id: string;
@@ -37,9 +36,11 @@ export function CompanyCarsModal({
   const [showBookingWidget, setShowBookingWidget] = useState(false);
   const [selectedCar, setSelectedCar] = useState<CompanyCar | null>(null);
   const [bookingForm, setBookingForm] = useState({
-    companyName: '',
+    clientName: '',
     fromDate: undefined as Date | undefined,
-    toDate: undefined as Date | undefined
+    toDate: undefined as Date | undefined,
+    numberOfPassengers: 1,
+    numberOfCars: 1
   });
   useEffect(() => {
     if (isOpen) {
@@ -50,14 +51,14 @@ export function CompanyCarsModal({
       setCars([]);
     }
   }, [isOpen]);
+
+  // Load cars from static JSON in public/data/company_cars.json
   const fetchCars = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('company_cars').select('*').eq('is_available', true).order('name');
-      if (error) throw error;
-      setCars(data || []);
+      const res = await fetch('/data/company_cars.json');
+      const data = await res.json();
+      const available = (data || []).filter((c: any) => c.is_available !== false).sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      setCars(available);
     } catch (error) {
       console.error('Error fetching cars:', error);
     } finally {
@@ -70,23 +71,48 @@ export function CompanyCarsModal({
     setShowBookingWidget(true);
   };
 
-  const handleSendToWhatsApp = () => {
-    const message = `Hello! I would like to book the following vehicle:
+  const buildBookingMessage = (forCar?: CompanyCar) => {
+    const car = forCar || selectedCar;
+    return `Booking request from Cheesecake Safaris:\n\nVehicle: ${car?.name || 'N/A'}\nPlate Number: ${car?.number_plate || 'N/A'}\nClient Name: ${bookingForm.clientName}\nFrom: ${bookingForm.fromDate ? format(bookingForm.fromDate, 'PPP') : 'Not specified'}\nTo: ${bookingForm.toDate ? format(bookingForm.toDate, 'PPP') : 'Not specified'}\nPassengers: ${bookingForm.numberOfPassengers}\nCars needed: ${bookingForm.numberOfCars}\n\nPlease confirm availability and pricing. Thank you!`;
+  };
 
-Vehicle: ${selectedCar?.name}
-Plate Number: ${selectedCar?.number_plate}
-Company Name: ${bookingForm.companyName}
-From Date: ${bookingForm.fromDate ? format(bookingForm.fromDate, 'PPP') : 'Not specified'}
-To Date: ${bookingForm.toDate ? format(bookingForm.toDate, 'PPP') : 'Not specified'}
-
-Please confirm availability and pricing. Thank you!`;
-
+  const handleSendToWhatsApp = (forCar?: CompanyCar) => {
+    const message = buildBookingMessage(forCar);
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/254710622549?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
-    
-    // Reset form and close widget
-    setBookingForm({ companyName: '', fromDate: undefined, toDate: undefined });
+    // close booking widget
+    setShowBookingWidget(false);
+  };
+
+  const handleSendEmail = (forCar?: CompanyCar) => {
+    const message = buildBookingMessage(forCar);
+    const subject = `Booking request - ${selectedCar?.name || 'Vehicle'}`;
+    const mailto = `mailto:cheesecakesafari@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+    window.location.href = mailto;
+    setShowBookingWidget(false);
+  };
+
+  const handleDownloadBookingFile = (forCar?: CompanyCar) => {
+    const car = forCar || selectedCar;
+    const payload = {
+      vehicle: car?.name || null,
+      plate: car?.number_plate || null,
+      clientName: bookingForm.clientName,
+      from: bookingForm.fromDate ? bookingForm.fromDate.toISOString() : null,
+      to: bookingForm.toDate ? bookingForm.toDate.toISOString() : null,
+      passengers: bookingForm.numberOfPassengers,
+      numberOfCars: bookingForm.numberOfCars
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `booking_${(car?.number_plate || 'vehicle').replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
     setShowBookingWidget(false);
   };
   return <Dialog open={isOpen} onOpenChange={onClose}>
@@ -435,86 +461,133 @@ Please confirm availability and pricing. Thank you!`;
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="companyName" className="text-sm font-medium">
-                Company Name
+              <Label htmlFor="clientName" className="text-sm font-medium">
+                Client Name
               </Label>
               <Input
-                id="companyName"
-                value={bookingForm.companyName}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, companyName: e.target.value }))}
-                placeholder="Enter your company name"
+                id="clientName"
+                value={bookingForm.clientName}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, clientName: e.target.value }))}
+                placeholder="Enter client full name"
                 className="rounded-xl"
               />
             </div>
 
-            <div>
-              <Label htmlFor="fromDate" className="text-sm font-medium">
-                From Date
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal rounded-xl",
-                      !bookingForm.fromDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {bookingForm.fromDate ? format(bookingForm.fromDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={bookingForm.fromDate}
-                    onSelect={(date) => setBookingForm(prev => ({ ...prev, fromDate: date }))}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="fromDate" className="text-sm font-medium">
+                  From Date
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal rounded-xl",
+                        !bookingForm.fromDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {bookingForm.fromDate ? format(bookingForm.fromDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={bookingForm.fromDate}
+                      onSelect={(date) => setBookingForm(prev => ({ ...prev, fromDate: date }))}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <Label htmlFor="toDate" className="text-sm font-medium">
+                  To Date
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal rounded-xl",
+                        !bookingForm.toDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {bookingForm.toDate ? format(bookingForm.toDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={bookingForm.toDate}
+                      onSelect={(date) => setBookingForm(prev => ({ ...prev, toDate: date }))}
+                      disabled={(date) => date < new Date() || (bookingForm.fromDate && date < bookingForm.fromDate)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="toDate" className="text-sm font-medium">
-                To Date
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal rounded-xl",
-                      !bookingForm.toDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {bookingForm.toDate ? format(bookingForm.toDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={bookingForm.toDate}
-                    onSelect={(date) => setBookingForm(prev => ({ ...prev, toDate: date }))}
-                    disabled={(date) => date < new Date() || (bookingForm.fromDate && date < bookingForm.fromDate)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="passengers" className="text-sm font-medium">Passengers</Label>
+                <Input
+                  id="passengers"
+                  type="number"
+                  min={1}
+                  value={bookingForm.numberOfPassengers}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, numberOfPassengers: Number(e.target.value) }))}
+                  className="rounded-xl"
+                />
+              </div>
+              <div>
+                <Label htmlFor="numCars" className="text-sm font-medium">Number of Cars (optional)</Label>
+                <Input
+                  id="numCars"
+                  type="number"
+                  min={1}
+                  value={bookingForm.numberOfCars}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, numberOfCars: Number(e.target.value) }))}
+                  className="rounded-xl"
+                />
+              </div>
             </div>
 
-            <Button
-              onClick={handleSendToWhatsApp}
-              disabled={!bookingForm.companyName || !bookingForm.fromDate || !bookingForm.toDate}
-              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center justify-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Send to WhatsApp
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={() => handleSendToWhatsApp(selectedCar || undefined)}
+                disabled={!bookingForm.clientName || !bookingForm.fromDate || !bookingForm.toDate}
+                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Send to WhatsApp
+              </Button>
+
+              <Button
+                onClick={() => handleSendEmail(selectedCar || undefined)}
+                disabled={!bookingForm.clientName || !bookingForm.fromDate || !bookingForm.toDate}
+                variant="outline"
+                className="w-full"
+              >
+                Send Email
+              </Button>
+
+              <Button
+                onClick={() => handleDownloadBookingFile(selectedCar || undefined)}
+                disabled={!bookingForm.clientName || !bookingForm.fromDate || !bookingForm.toDate}
+                variant="ghost"
+                className="w-full"
+              >
+                Download Booking File
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

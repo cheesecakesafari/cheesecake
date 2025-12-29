@@ -1,0 +1,20 @@
+[
+  {
+    "id": "trip-1",
+    "title": "Masai Mara Classic",
+    "short_description": "Witness the Great Migration and Big Five encounters.",
+    "description": "A classic 3-day safari to the Masai Mara.",
+    "image_url": "/lovable-uploads/masai-mara.jpg",
+    "duration": "3 days",
+    "group_size": "Small",
+    "price": 499,
+    "original_price": 599,
+    "rating": 4.8,
+    "reviews": 124,
+    "badge": "Popular",
+    "features": ["Game drives","Accommodation","Meals"],
+    "destinations": ["Masai Mara"],
+    "is_featured": true,
+    "detailed_info": ["Airport transfers","Park fees","Guided game drives"]
+  }
+]

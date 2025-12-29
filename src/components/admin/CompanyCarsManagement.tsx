@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed for static mode. Data is read from /public/data/company_cars.json
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,12 +48,8 @@ export function CompanyCarsManagement() {
 
   const fetchCars = async () => {
     try {
-      const { data, error } = await supabase
-        .from('company_cars')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/data/company_cars.json');
+      const data = await res.json();
       setCars(data || []);
     } catch (error) {
       console.error('Error fetching cars:', error);
@@ -80,30 +76,11 @@ export function CompanyCarsManagement() {
         features: formData.features ? formData.features.split(',').map(f => f.trim()) : null,
         is_available: formData.is_available
       };
-
-      if (editingCar) {
-        const { error } = await supabase
-          .from('company_cars')
-          .update(carData)
-          .eq('id', editingCar.id);
-
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Car updated successfully"
-        });
-      } else {
-        const { error } = await supabase
-          .from('company_cars')
-          .insert([carData]);
-
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Car added successfully"
-        });
-      }
-
+      // Static mode: we cannot persist changes from the browser. Show guidance to edit JSON source.
+      toast({
+        title: "Note",
+        description: "Running in static mode — changes are not persisted. Edit public/data/company_cars.json in the repo to persist changes.",
+      });
       setIsDialogOpen(false);
       setEditingCar(null);
       resetForm();
@@ -134,28 +111,11 @@ export function CompanyCarsManagement() {
 
   const handleDelete = async (carId: string) => {
     if (!confirm('Are you sure you want to delete this car?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('company_cars')
-        .delete()
-        .eq('id', carId);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Car deleted successfully"
-      });
-      fetchCars();
-    } catch (error) {
-      console.error('Error deleting car:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete car",
-        variant: "destructive"
-      });
-    }
+    // Static mode: deletion not supported in-browser
+    toast({
+      title: "Note",
+      description: "Static mode: to delete a car edit public/data/company_cars.json and remove the entry.",
+    });
   };
 
   const resetForm = () => {

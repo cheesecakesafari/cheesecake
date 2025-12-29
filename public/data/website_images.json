@@ -1,0 +1,12 @@
+[
+  {
+    "id": "img-1",
+    "name": "Hero",
+    "image_url": "/lovable-uploads/hero.jpg",
+    "alt_text": "Safari hero image",
+    "category": "hero",
+    "is_active": true,
+    "created_at": "2025-01-01T00:00:00.000Z",
+    "updated_at": "2025-01-01T00:00:00.000Z"
+  }
+]

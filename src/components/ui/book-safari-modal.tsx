@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
 import { Button } from './button';
 import { Input } from './input';
 import { X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface BookSafariModalProps {
@@ -32,19 +31,25 @@ export const BookSafariModal = ({ isOpen, onClose }: BookSafariModalProps) => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .insert([{
-          client_name: formData.client_name,
-          email: formData.email,
-          message: 'General safari booking inquiry'
-        }]);
+      const message = `General booking inquiry\n\nName: ${formData.client_name}\nEmail: ${formData.email}`;
+      const mailto = `mailto:cheesecakesafari@gmail.com?subject=${encodeURIComponent('Booking Inquiry')}&body=${encodeURIComponent(message)}`;
+      window.location.href = mailto;
+      window.open(`https://wa.me/254710622549?text=${encodeURIComponent(message)}`, '_blank');
 
-      if (error) throw error;
+      const payload = { ...formData, message: 'General safari booking inquiry' };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `booking_${(formData.client_name || 'booking').replace(/\s+/g,'_')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
 
       toast({
         title: "Success!",
-        description: "Your booking request has been submitted. We'll contact you soon!"
+        description: "Mail client opened and WhatsApp window opened. A booking file has been downloaded."
       });
 
       setFormData({ client_name: '', email: '' });
@@ -52,7 +57,7 @@ export const BookSafariModal = ({ isOpen, onClose }: BookSafariModalProps) => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to submit booking request. Please try again.",
+        description: "Failed to prepare booking request. Please try again.",
         variant: "destructive"
       });
     } finally {

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
 import { Button } from './button';
 import { Upload, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface GalleryModalProps {
   isOpen: boolean;
@@ -21,23 +20,11 @@ export const GalleryModal = ({ isOpen, onClose }: GalleryModalProps) => {
 
   const fetchImages = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from('gallery')
-        .list('', {
-          limit: 10,
-          offset: 0,
-        });
-
-      if (error) throw error;
-
-      const imageUrls = data?.map(file => {
-        const { data: urlData } = supabase.storage
-          .from('gallery')
-          .getPublicUrl(file.name);
-        return urlData.publicUrl;
-      }) || [];
-
-      setImages(imageUrls);
+      // Load images from static JSON in public/data/gallery.json
+      const res = await fetch('/data/gallery.json');
+      if (!res.ok) throw new Error('Failed to load gallery');
+      const imageUrls: string[] = await res.json();
+      setImages(imageUrls || []);
     } catch (error) {
       console.error('Error fetching images:', error);
     }
@@ -47,21 +34,8 @@ export const GalleryModal = ({ isOpen, onClose }: GalleryModalProps) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
-    try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage
-        .from('gallery')
-        .upload(fileName, file);
-
-      if (error) throw error;
-      
-      fetchImages(); // Refresh images
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    } finally {
-      setUploading(false);
-    }
+    // Uploads are disabled in static mode — prompt user to add images to public/lovable-uploads/ and list them in public/data/gallery.json
+    console.warn('Upload disabled in static mode. Add images to public/lovable-uploads/ and list them in public/data/gallery.json');
   };
 
   return (

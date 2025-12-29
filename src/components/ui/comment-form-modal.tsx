@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "@/components/ui/star-rating";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -38,18 +37,7 @@ export function CommentFormModal({ open, onOpenChange, onCommentSubmitted }: Com
     setIsSubmitting(true);
 
     try {
-      // Insert comment into database
-      const { error: dbError } = await supabase
-        .from('comments')
-        .insert({
-          name: name.trim(),
-          email: email.trim() || null,
-          phone: phone.trim() || null,
-          comment: comment.trim(),
-          rating
-        });
-
-      if (dbError) throw dbError;
+        // Static mode: do not persist to a backend. Instead, open WhatsApp for manual notification.
 
       // Send to WhatsApp
       const whatsappMessage = `New Comment Received!\n\nName: ${name}\nEmail: ${email || 'Not provided'}\nPhone: ${phone || 'Not provided'}\nRating: ${rating} stars\n\nComment:\n${comment}`;

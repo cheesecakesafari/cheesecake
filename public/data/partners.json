@@ -1,0 +1,10 @@
+[
+  {
+    "id": "partner-1",
+    "name": "Local Lodge",
+    "logo_url": "/lovable-uploads/partner-logo-1.png",
+    "website_url": "https://example.com",
+    "description": "Trusted accommodation partner.",
+    "is_active": true
+  }
+]

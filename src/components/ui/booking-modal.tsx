@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, User, Calendar, Users } from "lucide-react";
 
@@ -30,29 +29,37 @@ export function BookingModal({ isOpen, onClose, tripId, tripTitle }: BookingModa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .insert({
-          trip_id: tripId,
-          client_name: formData.clientName,
-          email: formData.email,
-          phone: formData.phone,
-          message: formData.message,
-          number_of_people: formData.numberOfPeople,
-          booking_date: formData.bookingDate || null,
-          status: 'pending'
-        });
+      // Build booking message and open mailto + whatsapp, also download a JSON file for records
+      const message = `Booking request for trip: ${tripTitle || tripId || 'N/A'}\n\nName: ${formData.clientName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nDate: ${formData.bookingDate || 'N/A'}\nTravelers: ${formData.numberOfPeople}\nMessage: ${formData.message}`;
 
-      if (error) throw error;
+      // Open mail client
+      const subject = `Booking request - ${tripTitle || 'Trip'}`;
+      const mailto = `mailto:cheesecakesafari@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+      // open mailto
+      window.location.href = mailto;
+
+      // Open WhatsApp in new tab
+      const wa = `https://wa.me/254710622549?text=${encodeURIComponent(message)}`;
+      window.open(wa, '_blank');
+
+      // Download booking JSON
+      const payload = { tripId, tripTitle, ...formData };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `booking_${(formData.clientName || 'booking').replace(/\s+/g,'_')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
 
       toast({
-        title: "Booking Request Submitted",
-        description: "We'll contact you within 24 hours to confirm your safari booking.",
+        title: "Booking Prepared",
+        description: "Mail client opened and WhatsApp window opened. A booking file has been downloaded.",
       });
 
-      // Reset form and close modal
       setFormData({
         clientName: "",
         email: "",
@@ -63,10 +70,10 @@ export function BookingModal({ isOpen, onClose, tripId, tripTitle }: BookingModa
       });
       onClose();
     } catch (error) {
-      console.error('Error submitting booking:', error);
+      console.error('Error preparing booking:', error);
       toast({
         title: "Error",
-        description: "Failed to submit booking. Please try again.",
+        description: "Failed to prepare booking. Please try again.",
         variant: "destructive",
       });
     } finally {

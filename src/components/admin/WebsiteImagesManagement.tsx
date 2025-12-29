@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Static mode: images read from `public/data/website_images.json`. Uploads/persistence disabled.
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,12 +43,9 @@ export function WebsiteImagesManagement() {
 
   const fetchImages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('website_images')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/data/website_images.json');
+      if (!res.ok) throw new Error('Failed to load website images');
+      const data: WebsiteImage[] = await res.json();
       setImages(data || []);
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -63,21 +60,7 @@ export function WebsiteImagesManagement() {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `website-images/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('gallery')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    throw new Error('Uploads are disabled in static mode. Add images to public/lovable-uploads/ and update public/data/website_images.json');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,33 +92,11 @@ export function WebsiteImagesManagement() {
         is_active: formData.is_active
       };
 
-      if (editingImage) {
-        const { error } = await supabase
-          .from('website_images')
-          .update(imageData)
-          .eq('id', editingImage.id);
-
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Image updated successfully"
-        });
-      } else {
-        const { error } = await supabase
-          .from('website_images')
-          .insert([imageData]);
-
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Image uploaded successfully"
-        });
-      }
-
-      setIsDialogOpen(false);
-      setEditingImage(null);
-      resetForm();
-      fetchImages();
+      // Persistence disabled in static mode. To add/edit images, update public/data/website_images.json and place files under public/lovable-uploads/.
+      toast({
+        title: "Not Available",
+        description: "Image upload/edit is disabled in static mode. Edit data files to persist changes.",
+      });
     } catch (error) {
       console.error('Error saving image:', error);
       toast({

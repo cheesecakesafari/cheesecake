@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Static mode: packages read from `public/data/trips.json`. Persistence disabled.
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,12 +62,9 @@ export function SafariPackagesManagement() {
 
   const fetchPackages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/data/trips.json');
+      if (!res.ok) throw new Error('Failed to load trips');
+      const data: SafariPackage[] = await res.json();
       setPackages(data || []);
     } catch (error) {
       console.error('Error fetching packages:', error);
@@ -102,33 +99,11 @@ export function SafariPackagesManagement() {
         is_featured: formData.is_featured
       };
 
-      if (editingPackage) {
-        const { error } = await supabase
-          .from('trips')
-          .update(packageData)
-          .eq('id', editingPackage.id);
-
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Package updated successfully"
-        });
-      } else {
-        const { error } = await supabase
-          .from('trips')
-          .insert([packageData]);
-
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Package added successfully"
-        });
-      }
-
-      setIsDialogOpen(false);
-      setEditingPackage(null);
-      resetForm();
-      fetchPackages();
+      // Persistence disabled in static mode. To add or edit packages, modify `public/data/trips.json`.
+      toast({
+        title: "Not Available",
+        description: "Adding/updating packages is disabled in static mode. Edit the data file to persist changes.",
+      });
     } catch (error) {
       console.error('Error saving package:', error);
       toast({
@@ -162,28 +137,11 @@ export function SafariPackagesManagement() {
 
   const handleDelete = async (packageId: string) => {
     if (!confirm('Are you sure you want to delete this package?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('trips')
-        .delete()
-        .eq('id', packageId);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Package deleted successfully"
-      });
-      fetchPackages();
-    } catch (error) {
-      console.error('Error deleting package:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete package",
-        variant: "destructive"
-      });
-    }
+    // Deletion is disabled in static mode. Edit `public/data/trips.json` to remove packages.
+    toast({
+      title: "Not Available",
+      description: "Deleting packages is disabled in static mode. Edit the data file to remove entries.",
+    });
   };
 
   const resetForm = () => {

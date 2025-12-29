@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+// Use static JSON at /data/trips.json (no Supabase)
 import { BookingModal } from "@/components/ui/booking-modal";
 import { TripDetailsModal } from "@/components/ui/trip-details-modal";
 import { LocationsSection } from "@/components/sections/LocationsSection";
@@ -105,10 +105,6 @@ export function PackagesSection() {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  useEffect(() => {
-    fetchTrips();
-  }, []);
-
   // Auto-play carousel
   useEffect(() => {
     if (!isAutoPlay) return;
@@ -126,15 +122,14 @@ export function PackagesSection() {
     return () => clearInterval(interval);
   }, [isAutoPlay, trips.length]);
 
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
   const fetchTrips = async () => {
     try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .order('is_featured', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/data/trips.json');
+      const data = await res.json();
       setTrips(data || []);
     } catch (error) {
       console.error('Error fetching trips:', error);

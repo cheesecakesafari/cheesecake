@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink } from "lucide-react";
 
@@ -22,14 +21,12 @@ export function PartnersSection() {
 
   const fetchPartners = async () => {
     try {
-      const { data, error } = await supabase
-        .from('partners')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setPartners(data || []);
+      const res = await fetch('/data/partners.json');
+      if (!res.ok) throw new Error('Failed to load partners');
+      const data: any[] = await res.json();
+      // filter active partners if the JSON contains `is_active`
+      const active = (data || []).filter(p => p.is_active !== false);
+      setPartners(active);
     } catch (error) {
       console.error('Error fetching partners:', error);
     } finally {

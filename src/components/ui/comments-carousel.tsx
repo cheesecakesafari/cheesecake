@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { StarRating } from "@/components/ui/star-rating";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -20,15 +19,11 @@ export function CommentsCarousel() {
 
   const fetchComments = async () => {
     try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      setComments(data || []);
+      const res = await fetch('/data/comments.json');
+      if (!res.ok) throw new Error('Failed to load comments');
+      const data: Comment[] = await res.json();
+      const approved = (data || []).filter(c => (c as any).is_approved !== false).slice(0, 10);
+      setComments(approved);
     } catch (error) {
       console.error('Error fetching comments:', error);
     } finally {
