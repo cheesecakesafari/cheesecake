@@ -121,6 +121,134 @@ export function CompanyCarsModal({
     URL.revokeObjectURL(url);
     setShowBookingWidget(false);
   };
+
+  const handleDownloadBookingPDF = async (forCar?: CompanyCar) => {
+    const car = forCar || selectedCar;
+    if (!car) return;
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 40;
+      let y = margin;
+
+      // Load logo
+      let logoDataUrl: string | null = null;
+      try {
+        const res = await fetch('/lovable-uploads/LOGO CHEESECAKE.png');
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result as string);
+          fr.onerror = (e) => reject(e);
+          fr.readAsDataURL(blob);
+        });
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(); });
+        const canvas = document.createElement('canvas');
+        const maxDim = 120;
+        const ratio = Math.min(1, maxDim / (img.naturalWidth || img.width));
+        canvas.width = Math.round((img.naturalWidth || img.width) * ratio);
+        canvas.height = Math.round((img.naturalHeight || img.height) * ratio);
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        logoDataUrl = canvas.toDataURL('image/png');
+      } catch (e) {
+        console.warn('Could not load logo for PDF', e);
+      }
+
+      // Header
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, 'PNG', margin, y, 80, 80);
+      }
+      doc.setFont('times', 'bold');
+      doc.setFontSize(16);
+      doc.text('CHEESECAKE SAFARIS LTD', pageWidth / 2, y + 18, { align: 'center' });
+      doc.setFont('times', 'normal');
+      doc.setFontSize(11);
+      doc.text('Vehicle Details', pageWidth / 2, y + 36, { align: 'center' });
+      y += 100;
+
+      // Contact info
+      doc.setFontSize(9);
+      doc.text('Tel/WhatsApp: 0710622549 | 0727422000', pageWidth / 2, y, { align: 'center' });
+      y += 12;
+      doc.text('Email: cheesecakesafari@gmail.com', pageWidth / 2, y, { align: 'center' });
+      y += 18;
+
+      // Insert car image if available
+      let carImageData: string | null = null;
+      if (car.images && car.images.length > 0) {
+        try {
+          const res = await fetch(car.images[0]);
+          const blob = await res.blob();
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            const fr = new FileReader();
+            fr.onload = () => resolve(fr.result as string);
+            fr.onerror = (e) => reject(e);
+            fr.readAsDataURL(blob);
+          });
+          const img = new Image();
+          img.src = dataUrl;
+          await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(); });
+          const canvas = document.createElement('canvas');
+          const maxW = pageWidth - margin * 2;
+          const ratio = Math.min(1, maxW / (img.naturalWidth || img.width));
+          canvas.width = Math.round((img.naturalWidth || img.width) * ratio);
+          canvas.height = Math.round((img.naturalHeight || img.height) * ratio);
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          carImageData = canvas.toDataURL('image/png');
+        } catch (e) {
+          console.warn('Could not load car image for PDF', e);
+        }
+      }
+
+      // Car details left column
+      doc.setFont('times', 'bold');
+      doc.setFontSize(11);
+      doc.text('CAR DETAILS:', margin, y);
+      y += 14;
+      doc.setFont('times', 'normal');
+      doc.setFontSize(10);
+      const lines = [] as string[];
+      lines.push(`Name: ${car.name}`);
+      lines.push(`Plate Number: ${car.number_plate}`);
+      lines.push(`Color: ${car.color}`);
+      lines.push(`Passenger Capacity: ${car.number_of_passengers}`);
+      if (car.features && car.features.length) lines.push(`Features: ${car.features.join(', ')}`);
+      if (car.description) lines.push(`Description: ${car.description}`);
+
+      lines.forEach(line => {
+        const wrapped = doc.splitTextToSize(line, pageWidth - margin * 2);
+        doc.text(wrapped, margin, y);
+        y += wrapped.length * 12 + 6;
+        if (y > pageHeight - 120) { doc.addPage(); y = margin; }
+      });
+
+      // Add car image to the right if fits on same page, else on next page
+      if (carImageData) {
+        const imgW = Math.min(260, pageWidth - margin * 2);
+        const imgH = imgW * 0.6;
+        if (y + imgH + 60 > pageHeight) { doc.addPage(); y = margin; }
+        doc.addImage(carImageData, 'PNG', margin, y, imgW, imgH);
+        y += imgH + 12;
+      }
+
+      // Footer note
+      doc.setFontSize(9);
+      doc.text('Powered by 4on4 group Limited', pageWidth / 2, pageHeight - 40, { align: 'center' });
+
+      doc.save(`cheesecake_car_${(car.number_plate || 'car').replace(/\s+/g, '_')}.pdf`);
+    } catch (err) {
+      console.error('PDF generation failed', err);
+      // fallback to JSON download
+      handleDownloadBookingFile(forCar);
+    }
+    setShowBookingWidget(false);
+  };
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={cn(
         "dialog-content rounded-2xl",
@@ -593,12 +721,12 @@ export function CompanyCarsModal({
               </Button>
 
               <Button
-                onClick={() => handleDownloadBookingFile(selectedCar || undefined)}
+                onClick={() => handleDownloadBookingPDF(selectedCar || undefined)}
                 disabled={!bookingForm.clientName || !bookingForm.fromDate || !bookingForm.toDate}
                 variant="ghost"
                 className="w-full"
               >
-                Download Booking File
+                DOWNLOAD AS FILE
               </Button>
             </div>
           </div>
