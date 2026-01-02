@@ -78,8 +78,120 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
               }}>
                 <Mail className="w-4 h-4 mr-2" /> Email
               </Button>
-              <Button onClick={() => { onDownload(); setOpen(false); }}>
-                <Download className="w-4 h-4 mr-2" /> Download JSON
+              <Button onClick={async () => {
+                // Generate PDF and trigger download
+                try {
+                  // dynamic import to avoid adding to main bundle unnecessarily
+                  const { jsPDF } = await import('jspdf');
+
+                  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+                  const pageWidth = doc.internal.pageSize.getWidth();
+                  const pageHeight = doc.internal.pageSize.getHeight();
+
+                  // Load logo (favicon-new.ico) and convert to PNG via canvas if needed
+                  let logoDataUrl: string | null = null;
+                  try {
+                    const res = await fetch('/favicon-new.ico');
+                    const blob = await res.blob();
+                    const dataUrl = await new Promise<string>((resolve, reject) => {
+                      const fr = new FileReader();
+                      fr.onload = () => resolve(fr.result as string);
+                      fr.onerror = (e) => reject(e);
+                      fr.readAsDataURL(blob);
+                    });
+
+                    // Draw into canvas to ensure PNG format
+                    const img = new Image();
+                    img.src = dataUrl;
+                    await new Promise<void>((resolve, reject) => {
+                      img.onload = () => resolve();
+                      img.onerror = (e) => reject(e);
+                    });
+                    const canvas = document.createElement('canvas');
+                    const scale = 1;
+                    canvas.width = (img.naturalWidth || img.width) * scale;
+                    canvas.height = (img.naturalHeight || img.height) * scale;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    logoDataUrl = canvas.toDataURL('image/png');
+                  } catch (e) {
+                    // logoDataUrl stays null if any step fails
+                    console.warn('Could not load favicon for PDF header', e);
+                  }
+
+                  let y = 40;
+                  const margin = 40;
+
+                  // Header: logo (if present) and titles
+                  if (logoDataUrl) {
+                    const imgW = 60;
+                    const imgH = 60;
+                    doc.addImage(logoDataUrl, 'PNG', margin, y, imgW, imgH);
+                  }
+
+                  doc.setFontSize(16);
+                  doc.setFont(undefined, 'bold');
+                  doc.text('CHEESECAKE SAFARIS LTD', pageWidth / 2, y + 20, { align: 'center' });
+                  doc.setFontSize(12);
+                  doc.setFont(undefined, 'normal');
+                  doc.text('Your Custom made Package to kenya', pageWidth / 2, y + 40, { align: 'center' });
+
+                  y += 90;
+
+                  // Intro paragraphs
+                  doc.setFontSize(10);
+                  const introLines = [
+                    'Choose a 4X4 Landcruiser from Our Car Pool to get Roadworth well mantained Car for Your Kenyan Trip',
+                    'We also with Your Request help you Book Local Hotels [5star, Tented, Hotels] for Your Accommodations',
+                    'We will facilitate local flight Bookings and make sure Your Schedule is strictly fullfilled'
+                  ];
+                  introLines.forEach(line => {
+                    const split = doc.splitTextToSize(line, pageWidth - margin * 2);
+                    doc.text(split, margin, y);
+                    y += split.length * 12 + 6;
+                  });
+
+                  y += 6;
+
+                  // Chosen locations
+                  doc.setFontSize(12);
+                  doc.setFont(undefined, 'bold');
+                  doc.text('Chosen Locations:', margin, y);
+                  y += 16;
+                  doc.setFont(undefined, 'normal');
+
+                  items.forEach((p: any, i: number) => {
+                    const title = `${i + 1}. ${p.locationName || p.id}`;
+                    const detail = `Days: ${p.days || '-'} • Hotel: ${p.hotelType || '-'}`;
+                    const lines1 = doc.splitTextToSize(title, pageWidth - margin * 2);
+                    doc.text(lines1, margin, y);
+                    y += lines1.length * 12 + 2;
+                    const lines2 = doc.splitTextToSize(detail, pageWidth - margin * 2);
+                    doc.text(lines2, margin, y);
+                    y += lines2.length * 12 + 2;
+                    if (p.name) { const ln = doc.splitTextToSize(`Client: ${p.name}`, pageWidth - margin * 2); doc.text(ln, margin, y); y += ln.length * 12 + 2; }
+                    if (p.extra) { const ln = doc.splitTextToSize(`Notes: ${p.extra}`, pageWidth - margin * 2); doc.text(ln, margin, y); y += ln.length * 12 + 6; }
+
+                    if (y > pageHeight - 100) {
+                      doc.addPage();
+                      y = 40;
+                    }
+                  });
+
+                  // Footer
+                  doc.setFontSize(10);
+                  doc.text('Powered by 4on4 group Limited', pageWidth / 2, pageHeight - 40, { align: 'center' });
+
+                  doc.save('cheesecake-package.pdf');
+                } catch (err) {
+                  console.error('PDF generation failed', err);
+                  // fallback: call provided onDownload for JSON
+                  if (onDownload) onDownload();
+                }
+
+                setOpen(false);
+              }}>
+                <Download className="w-4 h-4 mr-2" /> DOWNLOAD AS FILE
               </Button>
             </div>
           </div>
