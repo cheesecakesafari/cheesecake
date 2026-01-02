@@ -39,21 +39,23 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={cn('dialog-content rounded-2xl max-w-2xl')}>
+        <DialogContent className={cn('dialog-content rounded-2xl max-w-2xl max-h-[90vh] overflow-hidden')}>
           <DialogHeader>
             <DialogTitle>Prepared Package ({items.length} destinations)</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">Review your selected destinations and share them with us.</DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 space-y-3">
-            {items.map((p: any, idx: number) => (
+          <div className="mt-4">
+            <div className="space-y-3 overflow-y-auto max-h-[65vh] p-2">
+              {items.map((p: any, idx: number) => (
               <div key={`${p.id}-${idx}`} className="p-3 border rounded-md bg-card/50">
                 <div className="font-semibold">{idx+1}. {p.locationName || p.id}</div>
                 <div className="text-sm text-muted-foreground">Days: {p.days || '-'} • Hotel: {p.hotelType || '-'}</div>
                 {p.name && <div className="text-sm">Name: {p.name}</div>}
                 {p.extra && <div className="text-sm mt-1">Notes: {p.extra}</div>}
               </div>
-            ))}
+              ))}
+            </div>
 
             <div className="flex gap-3 justify-end mt-4">
               {onClear && <Button variant="ghost" onClick={() => { onClear(); setOpen(false); }}>Clear</Button>}
