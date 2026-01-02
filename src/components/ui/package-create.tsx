@@ -21,18 +21,19 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed top-1/2 right-6 z-50 bg-emerald-500 text-white p-4 rounded-full shadow-xl flex items-center justify-center w-16 h-16 transform -translate-y-1/2"
+        className="fixed top-1/2 right-6 z-50 bg-emerald-500 text-white p-4 rounded-full shadow-xl flex items-center justify-center w-24 h-24 transform -translate-y-1/2"
         aria-label="Open package create"
       >
         {imageAvailable ? (
           <img
             src="/lovable-uploads/SAFARI.jpeg"
             alt="Package"
-            className="w-12 h-12 object-contain"
+            className="object-contain"
+            style={{ width: '72px', height: '72px' }}
             onError={() => setImageAvailable(false)}
           />
         ) : (
-          <Mail className="w-9 h-9" />
+          <Mail style={{ width: 54, height: 54 }} />
         )}
         <span className="sr-only">Open package</span>
         <span className="absolute -right-2 -top-2 bg-rose-500 text-white text-xs w-6 h-6 flex items-center justify-center rounded-full">{items.length}</span>
