@@ -292,7 +292,7 @@ export function LocationsSection({ onViewAllClick }: LocationsSectionProps) {
               role="button"
               tabIndex={0}
               className="group cursor-pointer hover:shadow-md transition-all duration-200 overflow-hidden bg-gradient-to-br from-amber-50/50 to-yellow-100/50 border border-amber-200/40 backdrop-blur-sm hover:bg-gradient-to-br hover:from-amber-100/60 hover:to-yellow-200/60"
-                onClick={(e) => { e.stopPropagation(); handleLocationClick(location.id); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLocationClick(location.id); }}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleLocationClick(location.id); } }}
             >
               <div className="relative h-28 md:h-36 overflow-hidden">
