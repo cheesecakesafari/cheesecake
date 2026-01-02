@@ -249,7 +249,7 @@ export function PackagesSection() {
                     <span className="text-sm text-muted-foreground md:hidden">
                       {Math.min(currentPackageIndex + 1, trips.length - 1)} - {Math.min(currentPackageIndex + 2, trips.length)} of {trips.length}
                     </span>
-                    
+                  
                     <Button
                       variant="ghost"
                       size="icon"
