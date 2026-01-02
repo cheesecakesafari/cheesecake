@@ -110,13 +110,15 @@ export function PackagesSection() {
     if (!isAutoPlay) return;
     
     const interval = setInterval(() => {
-      // Check screen size for different behavior
       const isMobile = window.innerWidth < 768;
-      const maxIndex = isMobile ? trips.length - 2 : trips.length - 5;
-      
-      if (trips.length <= (isMobile ? 2 : 5)) return;
-      
-      setCurrentPackageIndex((prev) => (prev + 1) % maxIndex);
+      const visibleCount = isMobile ? 4 : 10; // how many cards visible per view
+
+      if (trips.length <= visibleCount) return;
+
+      setCurrentPackageIndex((prev) => {
+        const maxStart = Math.max(trips.length - visibleCount, 0);
+        return prev >= maxStart ? 0 : prev + 1;
+      });
     }, 4000);
 
     return () => clearInterval(interval);
@@ -150,18 +152,26 @@ export function PackagesSection() {
 
   const nextPackage = () => {
     const isMobile = window.innerWidth < 768;
-    const maxIndex = isMobile ? trips.length - 2 : trips.length - 5;
-    
-    if (trips.length <= (isMobile ? 2 : 5)) return;
-    setCurrentPackageIndex((prev) => (prev + 1) % maxIndex);
+    const visibleCount = isMobile ? 4 : 10;
+
+    if (trips.length <= visibleCount) return;
+
+    setCurrentPackageIndex((prev) => {
+      const maxStart = Math.max(trips.length - visibleCount, 0);
+      return prev >= maxStart ? 0 : prev + 1;
+    });
   };
 
   const prevPackage = () => {
     const isMobile = window.innerWidth < 768;
-    const maxIndex = isMobile ? trips.length - 2 : trips.length - 5;
-    
-    if (trips.length <= (isMobile ? 2 : 5)) return;
-    setCurrentPackageIndex((prev) => (prev - 1 + maxIndex) % maxIndex);
+    const visibleCount = isMobile ? 4 : 10;
+
+    if (trips.length <= visibleCount) return;
+
+    setCurrentPackageIndex((prev) => {
+      const maxStart = Math.max(trips.length - visibleCount, 0);
+      return prev <= 0 ? maxStart : prev - 1;
+    });
   };
 
   const toggleAutoPlay = () => {
@@ -188,6 +198,10 @@ export function PackagesSection() {
       )
     : trips;
 
+  // determine viewport visibility counts for responsive layout
+  const isMobileView = typeof window !== 'undefined' && window.innerWidth < 768;
+  const visibleCount = isMobileView ? 4 : 10;
+
   if (loading) {
     return (
       <section className="py-16 bg-background">
@@ -204,10 +218,7 @@ export function PackagesSection() {
   return (
     <>
       {/* SECTION 1: LOCATIONS - Where do you want to visit */}
-      <LocationsSection 
-        onLocationClick={handleLocationClick}
-        onViewAllClick={handleViewAllLocations}
-      />
+      <LocationsSection onViewAllClick={handleViewAllLocations} />
 
       {/* SECTION 2: PACKAGES - Safari Packages */}
       <section id="packages" className="py-16 bg-background">
@@ -244,17 +255,17 @@ export function PackagesSection() {
                   
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground hidden md:block">
-                      {Math.min(currentPackageIndex + 1, trips.length - 4)} - {Math.min(currentPackageIndex + 5, trips.length)} of {trips.length}
+                      {Math.min(currentPackageIndex + 1, trips.length)} - {Math.min(currentPackageIndex + visibleCount, trips.length)} of {trips.length}
                     </span>
                     <span className="text-sm text-muted-foreground md:hidden">
-                      {Math.min(currentPackageIndex + 1, trips.length - 1)} - {Math.min(currentPackageIndex + 2, trips.length)} of {trips.length}
+                      {Math.min(currentPackageIndex + 1, trips.length)} - {Math.min(currentPackageIndex + Math.min(2, visibleCount), trips.length)} of {trips.length}
                     </span>
                   
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={toggleAutoPlay}
-                      disabled={trips.length <= 2}
+                      disabled={trips.length <= visibleCount}
                       className="w-8 h-8"
                     >
                       {isAutoPlay ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
@@ -265,7 +276,7 @@ export function PackagesSection() {
                     variant="outline"
                     size="icon"
                     onClick={nextPackage}
-                    disabled={trips.length <= 2}
+                    disabled={trips.length <= visibleCount}
                     className="rounded-full"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -277,11 +288,11 @@ export function PackagesSection() {
                   <div 
                     className="flex transition-transform duration-500 ease-in-out gap-4"
                     style={{
-                      transform: `translateX(-${currentPackageIndex * (window.innerWidth < 768 ? 50 : 20)}%)`,
+                      transform: `translateX(-${currentPackageIndex * (window.innerWidth < 768 ? 25 : 10)}%)`,
                     }}
                   >
                     {trips.map((trip) => (
-                      <div key={trip.id} className="flex-shrink-0 w-1/2 md:w-1/5 pr-2 md:pr-4">
+                      <div key={trip.id} className="flex-shrink-0 pr-2 md:pr-4" style={{ width: window.innerWidth < 768 ? '25%' : '10%' }}>
                         <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden bg-primary/5 border-2 border-primary/30 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 h-full">
                            <div className="relative h-24 md:h-32">
                               {/* Using matching location images based on package content */}
