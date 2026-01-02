@@ -209,12 +209,12 @@ export function PackagesSection() {
         onViewAllClick={handleViewAllLocations}
       />
 
-      {/* SECTION 2: PACKAGES - Safsafi Packages */}
+      {/* SECTION 2: PACKAGES - Safari Packages */}
       <section id="packages" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Safsafi Packages
+              Safari Packages
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover handpicked adventures that showcase the best of East African wildlife
