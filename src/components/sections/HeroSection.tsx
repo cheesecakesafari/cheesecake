@@ -78,12 +78,15 @@ export function HeroSection() {
               ⭐ Unleash Your Adventurous Spirit
             </span>
             
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Creating Unforgettable
-              <span className="block bg-hero-gradient bg-clip-text text-transparent">
-                Safari Memories
-              </span>
-            </h1>
+            <div className="mb-2">
+              <h2 className="text-2xl lg:text-3xl font-extrabold text-white uppercase mb-2">CHEESECAKE SAFARIS</h2>
+              <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                Creating Unforgettable
+                <span className="block bg-hero-gradient bg-clip-text text-transparent">
+                  Safari Memories
+                </span>
+              </h1>
+            </div>
             
             <p className="text-xl text-white/90 mb-8 leading-relaxed max-w-3xl mx-auto">
               From the untamed wilderness of East Africa, we unlock hidden gems and curate 
