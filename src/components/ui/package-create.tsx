@@ -6,13 +6,14 @@ import { cn } from '@/lib/utils';
 
 interface PackageCreateProps {
   items: any[];
-  onEmail: () => void;
+  onEmail?: () => void;
   onDownload: () => void;
   onClear?: () => void;
 }
 
 export default function PackageCreate({ items, onEmail, onDownload, onClear }: PackageCreateProps) {
   const [open, setOpen] = React.useState(false);
+  const [imageAvailable, setImageAvailable] = React.useState(true);
 
   if (!items || items.length === 0) return null;
 
@@ -20,12 +21,21 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-emerald-500 text-white p-3 rounded-full shadow-xl flex items-center justify-center w-12 h-12"
+        className="fixed top-1/2 right-6 z-50 bg-emerald-500 text-white p-4 rounded-full shadow-xl flex items-center justify-center w-16 h-16 transform -translate-y-1/2"
         aria-label="Open package create"
       >
-        <Mail className="w-5 h-5" />
+        {imageAvailable ? (
+          <img
+            src="/lovable-uploads/SAFARI.jpeg"
+            alt="Package"
+            className="w-8 h-8 object-contain"
+            onError={() => setImageAvailable(false)}
+          />
+        ) : (
+          <Mail className="w-6 h-6" />
+        )}
         <span className="sr-only">Open package</span>
-        <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">{items.length}</span>
+        <span className="absolute -right-2 -top-2 bg-rose-500 text-white text-xs w-6 h-6 flex items-center justify-center rounded-full">{items.length}</span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -47,7 +57,23 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
 
             <div className="flex gap-3 justify-end mt-4">
               {onClear && <Button variant="ghost" onClick={() => { onClear(); setOpen(false); }}>Clear</Button>}
-              <Button onClick={() => { onEmail(); setOpen(false); }}>
+              <Button onClick={() => {
+                // Build Gmail compose URL and open in new tab
+                const to = 'cheesecakesafari@gmail.com';
+                const subject = 'PREPARE THIS PACKAGE FOR MY KENYAN TRIP';
+                let body = 'Please prepare this package for my Kenyan trip.\n\n';
+                items.forEach((p: any, i: number) => {
+                  body += `${i+1}. ${p.locationName || p.id} - ${p.days || ''} days - ${p.hotelType || ''}\n`;
+                  if (p.name) body += `   Client: ${p.name}\n`;
+                  if (p.extra) body += `   Notes: ${p.extra}\n`;
+                  body += '\n';
+                });
+                const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&tf=1`;
+                window.open(url, '_blank');
+                // call optional parent handler
+                if (onEmail) onEmail();
+                setOpen(false);
+              }}>
                 <Mail className="w-4 h-4 mr-2" /> Email
               </Button>
               <Button onClick={() => { onDownload(); setOpen(false); }}>
