@@ -79,19 +79,18 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
                 <Mail className="w-4 h-4 mr-2" /> Email
               </Button>
               <Button onClick={async () => {
-                // Generate PDF and trigger download
                 try {
-                  // dynamic import to avoid adding to main bundle unnecessarily
                   const { jsPDF } = await import('jspdf');
-
                   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
                   const pageWidth = doc.internal.pageSize.getWidth();
                   const pageHeight = doc.internal.pageSize.getHeight();
+                  const margin = 40;
+                  let y = margin;
 
-                  // Load logo (favicon-new.ico) and convert to PNG via canvas if needed
+                  // Load logo from lovable-uploads
                   let logoDataUrl: string | null = null;
                   try {
-                    const res = await fetch('/favicon-new.ico');
+                    const res = await fetch('/lovable-uploads/LOGO CHEESECAKE.png');
                     const blob = await res.blob();
                     const dataUrl = await new Promise<string>((resolve, reject) => {
                       const fr = new FileReader();
@@ -99,96 +98,113 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
                       fr.onerror = (e) => reject(e);
                       fr.readAsDataURL(blob);
                     });
-
-                    // Draw into canvas to ensure PNG format
                     const img = new Image();
                     img.src = dataUrl;
-                    await new Promise<void>((resolve, reject) => {
-                      img.onload = () => resolve();
-                      img.onerror = (e) => reject(e);
-                    });
+                    await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(); });
                     const canvas = document.createElement('canvas');
-                    const scale = 1;
-                    canvas.width = (img.naturalWidth || img.width) * scale;
-                    canvas.height = (img.naturalHeight || img.height) * scale;
+                    // scale down large logos to reasonable size for PDF header
+                    const maxDim = 120;
+                    const ratio = Math.min(1, maxDim / (img.naturalWidth || img.width));
+                    canvas.width = Math.round((img.naturalWidth || img.width) * ratio);
+                    canvas.height = Math.round((img.naturalHeight || img.height) * ratio);
                     const ctx = canvas.getContext('2d');
                     if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     logoDataUrl = canvas.toDataURL('image/png');
                   } catch (e) {
-                    // logoDataUrl stays null if any step fails
-                    console.warn('Could not load favicon for PDF header', e);
+                    console.warn('Could not load logo for PDF', e);
                   }
 
-                  let y = 40;
-                  const margin = 40;
-
-                  // Header: logo (if present) and titles
+                  // Header
                   if (logoDataUrl) {
-                    const imgW = 60;
-                    const imgH = 60;
+                    const imgW = 80; const imgH = 80;
                     doc.addImage(logoDataUrl, 'PNG', margin, y, imgW, imgH);
                   }
-
                   doc.setFontSize(16);
-                  doc.setFont(undefined, 'bold');
-                  doc.text('CHEESECAKE SAFARIS LTD', pageWidth / 2, y + 20, { align: 'center' });
-                  doc.setFontSize(12);
-                  doc.setFont(undefined, 'normal');
-                  doc.text('Your Custom made Package to kenya', pageWidth / 2, y + 40, { align: 'center' });
-
-                  y += 90;
-
-                  // Intro paragraphs
+                  doc.setFont('times', 'bold');
+                  doc.text('CHEESECAKE SAFARIS LTD', pageWidth / 2, y + 18, { align: 'center' });
                   doc.setFontSize(10);
-                  const introLines = [
-                    'Choose a 4X4 Landcruiser from Our Car Pool to get Roadworth well mantained Car for Your Kenyan Trip',
-                    'We also with Your Request help you Book Local Hotels [5star, Tented, Hotels] for Your Accommodations',
-                    'We will facilitate local flight Bookings and make sure Your Schedule is strictly fullfilled'
+                  doc.setFont('times', 'normal');
+                  doc.text('Your Custom made Package to kenya', pageWidth / 2, y + 34, { align: 'center' });
+
+                  y += 72;
+
+                  // Contact info
+                  doc.setFontSize(9);
+                  doc.text('Tel/WhatsApp: 0710622549 | 0727422000', pageWidth / 2, y, { align: 'center' });
+                  y += 12;
+                  doc.text('Email: cheesecakesafari@gmail.com', pageWidth / 2, y, { align: 'center' });
+
+                  y += 18;
+
+                  // Intro paragraph about services and budget
+                  doc.setFontSize(10);
+                  const intro = 'We also help to prepare a full safari budget upon request at your budget limits. Otherwise, we have comprehensive packages already tallied.';
+                  const introLines = doc.splitTextToSize(intro, pageWidth - margin * 2);
+                  doc.text(introLines, margin, y);
+                  y += introLines.length * 12 + 14;
+
+                  // Centered subject title
+                  doc.setFont('helvetica', 'bold');
+                  doc.setFontSize(11);
+                  doc.text('BELOW IS YOUR CUSTOM SAFARI', pageWidth / 2, y, { align: 'center' });
+                  y += 16;
+
+                  // Subheaders (left aligned with title label and content)
+                  const sections = [
+                    { title: 'CARS', content: 'Choose a 4X4 Landcruiser from Our Car Pool to get Roadworth well mantained Car for Your Kenyan Trip' },
+                    { title: 'HOTELS AND TENTED CAMPS', content: 'With your request, we will help you book local hotels [5star, Tented, Hotels] for your accommodations and hotel transfers' },
+                    { title: 'LOCAL FLIGHTS', content: 'If you prefer to use local flights, Cheesecake Safaris in partnership with local flight authorities, we help you book and schedule flights and adjust schedules' },
+                    { title: 'BUDGET', content: 'For your custom made packages, we will prepare a full breakdown of the total budget for all amenities/activities that your safari would entail.' }
                   ];
-                  introLines.forEach(line => {
-                    const split = doc.splitTextToSize(line, pageWidth - margin * 2);
-                    doc.text(split, margin, y);
-                    y += split.length * 12 + 6;
+
+                  sections.forEach(sec => {
+                    doc.setFont('times', 'bold');
+                    doc.setFontSize(11);
+                    const label = `${sec.title}:`;
+                    doc.text(label, margin, y);
+                    y += 14; // skip line after subheader
+                    const wrapped = doc.splitTextToSize(sec.content, pageWidth - margin * 2);
+                    doc.setFont('times', 'normal');
+                    doc.setFontSize(10);
+                    doc.text(wrapped, margin, y);
+                    y += (wrapped.length * 12) + 12;
+                    if (y > pageHeight - 120) { doc.addPage(); y = margin; }
                   });
 
-                  y += 6;
-
-                  // Chosen locations
-                  doc.setFontSize(12);
-                  doc.setFont(undefined, 'bold');
-                  doc.text('Chosen Locations:', margin, y);
+                  // Custom safari destination centred title
+                  doc.setFont('times', 'bold');
+                  doc.setFontSize(11);
+                  doc.text('YOUR CUSTOM SAFARI DESTINATION AND DURATION IS AS FOLLOWS', pageWidth / 2, y, { align: 'center' });
                   y += 16;
-                  doc.setFont(undefined, 'normal');
 
+                  // List chosen locations left-aligned with better spacing
+                  doc.setFont('times', 'normal');
+                  doc.setFontSize(10);
                   items.forEach((p: any, i: number) => {
-                    const title = `${i + 1}. ${p.locationName || p.id}`;
-                    const detail = `Days: ${p.days || '-'} • Hotel: ${p.hotelType || '-'}`;
-                    const lines1 = doc.splitTextToSize(title, pageWidth - margin * 2);
-                    doc.text(lines1, margin, y);
-                    y += lines1.length * 12 + 2;
-                    const lines2 = doc.splitTextToSize(detail, pageWidth - margin * 2);
-                    doc.text(lines2, margin, y);
-                    y += lines2.length * 12 + 2;
-                    if (p.name) { const ln = doc.splitTextToSize(`Client: ${p.name}`, pageWidth - margin * 2); doc.text(ln, margin, y); y += ln.length * 12 + 2; }
-                    if (p.extra) { const ln = doc.splitTextToSize(`Notes: ${p.extra}`, pageWidth - margin * 2); doc.text(ln, margin, y); y += ln.length * 12 + 6; }
-
-                    if (y > pageHeight - 100) {
-                      doc.addPage();
-                      y = 40;
+                    const title = `${i + 1}. ${p.locationName || p.id} — ${p.days || '-'} days`;
+                    const detail = `${p.hotelType || ''}${p.name ? ' • Client: ' + p.name : ''}`;
+                    const titleLines = doc.splitTextToSize(title, pageWidth - margin * 2);
+                    doc.text(titleLines, margin, y);
+                    y += titleLines.length * 13 + 4;
+                    if (detail.trim()) {
+                      const detLines = doc.splitTextToSize(detail, pageWidth - margin * 2);
+                      doc.text(detLines, margin + 10, y);
+                      y += detLines.length * 12 + 6;
                     }
+                    if (p.extra) { const notes = doc.splitTextToSize('Notes: ' + p.extra, pageWidth - margin * 2); doc.text(notes, margin + 10, y); y += notes.length * 12 + 8; }
+                    if (y > pageHeight - 120) { doc.addPage(); y = margin; }
                   });
 
                   // Footer
                   doc.setFontSize(10);
+                  doc.setFont('helvetica', 'normal');
                   doc.text('Powered by 4on4 group Limited', pageWidth / 2, pageHeight - 40, { align: 'center' });
 
                   doc.save('cheesecake-package.pdf');
                 } catch (err) {
                   console.error('PDF generation failed', err);
-                  // fallback: call provided onDownload for JSON
                   if (onDownload) onDownload();
                 }
-
                 setOpen(false);
               }}>
                 <Download className="w-4 h-4 mr-2" /> DOWNLOAD AS FILE
