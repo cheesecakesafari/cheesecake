@@ -17,7 +17,8 @@ export function FloatingWidget() {
   };
 
   const handleComingSoon = () => {
-    window.open('/coming-soon', '_blank');
+    // navigate to the dedicated locations page and scroll to the locations section
+    window.location.href = '/locations#locations';
   };
 
   return (

@@ -130,12 +130,8 @@ export function EnhancedFooter() {
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary" />
                 <div>
-                  <a href="mailto:info@cheesecakesafaris.com" className="text-yellow-200 hover:text-primary transition-colors">
-                    info@cheesecakesafaris.com
-                  </a>
-                  <br />
-                  <a href="mailto:bookings@cheesecakesafaris.com" className="text-yellow-200 hover:text-primary transition-colors">
-                    bookings@cheesecakesafaris.com
+                  <a href="mailto:cheesecakesafari@gmail.com" className="text-yellow-200 hover:text-primary transition-colors">
+                    cheesecakesafari@gmail.com
                   </a>
                 </div>
               </div>
@@ -151,7 +147,7 @@ export function EnhancedFooter() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-yellow-200 text-sm">
-              © 2024 Cheesecake Safaris. All rights reserved. | Licensed Safari Operator in Kenya
+              © 2025 Cheesecake Safaris. All rights reserved. | Licensed Safari Operator in Kenya
             </p>
           </div>
           

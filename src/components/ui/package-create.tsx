@@ -28,11 +28,11 @@ export default function PackageCreate({ items, onEmail, onDownload, onClear }: P
           <img
             src="/lovable-uploads/SAFARI.jpeg"
             alt="Package"
-            className="w-8 h-8 object-contain"
+            className="w-12 h-12 object-contain"
             onError={() => setImageAvailable(false)}
           />
         ) : (
-          <Mail className="w-6 h-6" />
+          <Mail className="w-9 h-9" />
         )}
         <span className="sr-only">Open package</span>
         <span className="absolute -right-2 -top-2 bg-rose-500 text-white text-xs w-6 h-6 flex items-center justify-center rounded-full">{items.length}</span>
