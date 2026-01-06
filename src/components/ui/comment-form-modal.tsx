@@ -14,21 +14,20 @@ interface CommentFormModalProps {
 }
 
 export function CommentFormModal({ open, onOpenChange, onCommentSubmitted }: CommentFormModalProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [comment, setComment] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [description, setDescription] = useState("");
   const [rating, setRating] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!name.trim() || !comment.trim()) {
+
+    // Validate description length
+    if (!description.trim() || description.split(" ").length > 50) {
       toast({
         title: "Error",
-        description: "Name and comment are required",
+        description: "The description must not exceed 50 words.",
         variant: "destructive",
       });
       return;
@@ -37,36 +36,28 @@ export function CommentFormModal({ open, onOpenChange, onCommentSubmitted }: Com
     setIsSubmitting(true);
 
     try {
-        // Static mode: do not persist to a backend. Instead, open WhatsApp for manual notification.
+      const apiBase = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+      const url = `${apiBase}/comments`;
 
-      // Send to WhatsApp
-      const whatsappMessage = `New Comment Received!\n\nName: ${name}\nEmail: ${email || 'Not provided'}\nPhone: ${phone || 'Not provided'}\nRating: ${rating} stars\n\nComment:\n${comment}`;
-      const whatsappUrl = `https://wa.me/254710622549?text=${encodeURIComponent(whatsappMessage)}`;
-      
-      // Open WhatsApp in new tab
-      window.open(whatsappUrl, '_blank');
-
-      toast({
-        title: "Comment Submitted!",
-        description: "Your comment has been submitted and sent to WhatsApp. Thank you for your feedback!",
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientName: clientName || "Anonymous", description, rating }),
       });
 
-      // Reset form
-      setName("");
-      setEmail("");
-      setPhone("");
-      setComment("");
+      if (!response.ok) throw new Error("Failed to submit comment");
+
+      toast({ title: "Success!", description: "Your comment was submitted!" });
+
+      // Reset form fields and close modal
+      setClientName("");
+      setDescription("");
       setRating(5);
-      
       onOpenChange(false);
       onCommentSubmitted();
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit comment. Please try again.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      console.error("Submit error:", err);
+      toast({ title: "Error!", description: "Failed to submit comment.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -76,55 +67,35 @@ export function CommentFormModal({ open, onOpenChange, onCommentSubmitted }: Com
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Write a Comment</DialogTitle>
+          <DialogTitle>Submit Your Comment</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Name *</label>
+            <label className="text-sm font-medium">Your Name (optional)</label>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              required
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="Enter your name"
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Email</label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com (optional)"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Phone</label>
-            <Input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+254... (optional)"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Rating *</label>
-            <div className="mt-2">
-              <StarRating rating={rating} onRatingChange={setRating} />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Comment *</label>
+            <label className="text-sm font-medium">Your Experience *</label>
             <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your experience with us..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Share your experience (max 50 words)"
               rows={4}
               required
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Your Rating *</label>
+            <div className="mt-2">
+              <StarRating rating={rating} onRatingChange={setRating} />
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4">
@@ -138,7 +109,7 @@ export function CommentFormModal({ open, onOpenChange, onCommentSubmitted }: Com
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Submit Comment
+              Submit
             </Button>
           </div>
         </form>

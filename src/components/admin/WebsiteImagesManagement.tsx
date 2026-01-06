@@ -123,28 +123,12 @@ export function WebsiteImagesManagement() {
 
   const handleDelete = async (imageId: string) => {
     if (!confirm('Are you sure you want to delete this image?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('website_images')
-        .delete()
-        .eq('id', imageId);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Image deleted successfully"
-      });
-      fetchImages();
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete image",
-        variant: "destructive"
-      });
-    }
+    // Deletion is disabled in static mode. To remove an image, delete the file from
+    // `public/lovable-uploads/` and remove its entry from `public/data/website_images.json`.
+    toast({
+      title: 'Not Available',
+      description: 'Image deletion is disabled in static mode. Edit public/data/website_images.json to remove images.',
+    });
   };
 
   const resetForm = () => {

@@ -1,94 +1,130 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
-import { Button } from './button';
-import { Upload, X } from 'lucide-react';
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Upload } from "lucide-react";
 
 interface GalleryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onGallerySubmitted: () => void;
 }
 
-export const GalleryModal = ({ isOpen, onClose }: GalleryModalProps) => {
-  const [images, setImages] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
+export function GalleryModal({ open, onOpenChange, onGallerySubmitted }: GalleryModalProps) {
+  const [clientName, setClientName] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchImages();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length > 3) {
+      alert("You can upload up to 3 images only!");
+      return;
     }
-  }, [isOpen]);
-
-  const fetchImages = async () => {
-    try {
-      // Load images from static JSON in public/data/gallery.json
-      const res = await fetch('/data/gallery.json');
-      if (!res.ok) throw new Error('Failed to load gallery');
-      const imageUrls: string[] = await res.json();
-      setImages(imageUrls || []);
-    } catch (error) {
-      console.error('Error fetching images:', error);
-    }
+    setImages(selectedFiles);
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleSubmit = async () => {
+    // Validate description length
+    if (!description.trim() || description.split(" ").length > 50) {
+      alert("Description must not exceed 50 words.");
+      return;
+    }
 
-    // Uploads are disabled in static mode — prompt user to add images to public/lovable-uploads/ and list them in public/data/gallery.json
-    console.warn('Upload disabled in static mode. Add images to public/lovable-uploads/ and list them in public/data/gallery.json');
+    const apiBase = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+    const url = `${apiBase}/gallery`;
+
+    const formData = new FormData();
+    formData.append("clientName", clientName);
+    formData.append("description", description);
+    formData.append("location", location);
+    images.forEach((image) => formData.append("images", image));
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(url, { method: "POST", body: formData });
+
+      if (!response.ok) throw new Error("Failed to submit gallery item");
+
+      alert("Gallery item submitted successfully!");
+      setClientName("");
+      setDescription("");
+      setLocation("");
+      setImages([]);
+      onGallerySubmitted();
+      onOpenChange(false);
+    } catch (err) {
+      console.error("Gallery submit error:", err);
+      alert("Failed to submit gallery item.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            Gallery
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogTitle>
+          <DialogTitle>Submit Your Gallery</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Upload Section */}
-          <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="image-upload"
-              disabled={uploading}
+          <div>
+            <label className="text-sm font-medium">Your Name *</label>
+            <Input
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="Enter your name"
+              required
             />
-            <label htmlFor="image-upload" className="cursor-pointer">
-              <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                {uploading ? 'Uploading...' : 'Click to upload image (max 10 images)'}
-              </p>
-            </label>
           </div>
 
-          {/* Gallery Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((imageUrl, index) => (
-              <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                <img
-                  src={imageUrl}
-                  alt={`Gallery image ${index + 1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform"
-                />
-              </div>
-            ))}
+          <div>
+            <label className="text-sm font-medium">Description (max 50 words) *</label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Briefly tell your story"
+              rows={4}
+              required
+            />
           </div>
 
-          {images.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No images in gallery yet. Upload some to get started!
-            </div>
-          )}
+          <div>
+            <label className="text-sm font-medium">Location *</label>
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter location"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Upload Images (max 3 files) *</label>
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} />
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit Gallery
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
+}

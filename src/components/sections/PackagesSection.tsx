@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BookingModal } from "@/components/ui/booking-modal";
 import { TripDetailsModal } from "@/components/ui/trip-details-modal";
 import { LocationsSection } from "@/components/sections/LocationsSection";
+import { CommentsSection } from "@/components/sections/CommentsSection";
 import { 
   Clock, 
   Users, 
@@ -204,14 +205,19 @@ export function PackagesSection() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="mt-2 text-muted-foreground">Loading safari packages...</p>
+      <>
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-2 text-muted-foreground">Loading safari packages...</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* COMMENTS SECTION: Show user comments/reviews below the packages */}
+        <CommentsSection />
+      </>
     );
   }
 

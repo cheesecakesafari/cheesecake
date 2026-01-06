@@ -19,11 +19,27 @@ export function CommentsCarousel() {
 
   const fetchComments = async () => {
     try {
-      const res = await fetch('/data/comments.json');
+      const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+      // try both possible backends: '/api/comments' (server/index.js) and '/comments' (backend/index.js)
+      let res = await fetch(`${apiBase}/api/comments`);
+      if (!res.ok) {
+        res = await fetch(`${apiBase}/comments`);
+      }
       if (!res.ok) throw new Error('Failed to load comments');
-      const data: Comment[] = await res.json();
-      const approved = (data || []).filter(c => (c as any).is_approved !== false).slice(0, 10);
-      setComments(approved);
+      const raw = await res.json();
+      // backend returns an array of objects with fields like _id, clientName, description, createdAt
+      // normalize different backend shapes to Comment[]
+      const data = (Array.isArray(raw) ? raw : raw.value || []) as any[];
+      const normalized: Comment[] = data.map((d: any) => ({
+        id: d.id || d._id || d._id?.toString() || d._id?.toString?.() || '',
+        name: d.name || d.clientName || d.client_name || 'Anonymous',
+        comment: d.comment || d.description || d.comment_text || '',
+        rating: typeof d.rating === 'number' ? d.rating : 5,
+        created_at: d.created_at || d.createdAt || d.createdAt?.toString?.() || new Date().toISOString(),
+        image_url: d.image_url || (d.images && d.images[0] ? `${apiBase}/${String(d.images[0]).replace(/\\/g, '/')}` : null),
+      }));
+
+      setComments(normalized);
     } catch (error) {
       console.error('Error fetching comments:', error);
     } finally {
@@ -75,6 +91,11 @@ export function CommentsCarousel() {
                     <StarRating rating={comment.rating} readonly size="sm" />
                   </div>
                   
+                  {comment.image_url && (
+                    <div className="mb-3">
+                      <img src={comment.image_url} alt={`${comment.name} photo`} className="w-full h-40 object-cover rounded" />
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground line-clamp-4">
                     "{comment.comment}"
                   </p>
